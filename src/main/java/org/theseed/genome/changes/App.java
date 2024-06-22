@@ -5,9 +5,9 @@ import java.util.Arrays;
 import org.theseed.basic.BaseProcessor;
 
 /**
- * Commands for Commands for analyzing differences between features in sets of genomes..
+ * Commands for analyzing differences between features in sets of genomes..
  *
- *
+ *	compare		compare two sets from a genome source
  *
  */
 public class App

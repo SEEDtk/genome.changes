@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.theseed.io.TabbedLineReader;
 
@@ -59,6 +60,17 @@ public class TagCounts {
      */
     public TagCounts(int capacity) {
         this.countMap = new HashMap<String, Count>(capacity);
+    }
+
+    /**
+     * Construct a tag count map from a single set of tags.
+     *
+     * @param tagSet	set of tags for this map
+     */
+    public TagCounts(Set<String> tagSet) {
+        this.countMap = new HashMap<String, Count>((tagSet.size() + 2) / 3 * 4);
+        for (String tag : tagSet)
+            this.setCount(tag, 1);
     }
 
     /**

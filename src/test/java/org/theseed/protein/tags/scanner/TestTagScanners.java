@@ -22,7 +22,7 @@ import org.theseed.proteins.RoleMap;
  * @author Bruce Parrello
  *
  */
-class TestTagScanners implements FeatureScanner.IParms {
+public class TestTagScanners implements FeatureScanner.IParms {
 
     @Test
     void testRoleScanner() throws IOException, ParseFailureException {
@@ -31,13 +31,26 @@ class TestTagScanners implements FeatureScanner.IParms {
         Set<String> roleTags = scanner.getTags(genome);
         assertThat(roleTags.size(), equalTo(2659));
         // We need to verify that every useful role in the genome is in the tag set.
+        String type = "rolescan";
         RoleMap roleMap = RoleMap.load(this.getRoleFileName());
+        verifyRoleTags(genome, roleTags, type, roleMap);
+    }
+
+    /**
+     * Verify that a set of role tags matches a genome.
+     *
+     * @param genome		genome of interest
+     * @param roleTags		role tags for the genome
+     * @param type			test type for assert labels
+     * @param roleMap		role definition map
+     */
+    public static void verifyRoleTags(Genome genome, Set<String> roleTags, String type, RoleMap roleMap) {
         // Verify that every role is in the set.
         for (Feature feat : genome.getPegs()) {
             List<Role> roles = feat.getUsefulRoles(roleMap);
             String fid = feat.getId();
             for (Role role : roles)
-                assertThat(fid, role.getId(),in(roleTags));
+                assertThat(type + ": " + fid, role.getId(),in(roleTags));
         }
     }
 
