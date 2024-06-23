@@ -7,7 +7,7 @@ import org.theseed.basic.BaseProcessor;
 /**
  * Commands for analyzing differences between features in sets of genomes..
  *
- *	compare		compare two sets from a genome source
+ *	buildTags		build a tag directory for a genome source
  *
  */
 public class App
@@ -20,8 +20,8 @@ public class App
         BaseProcessor processor;
         // Determine the command to process.
         switch (command) {
-        case "compare" :
-            processor = new CompareChangesProcessor();
+        case "buildTags" :
+            processor = new BuildTagDirectoryProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
