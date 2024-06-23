@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -89,6 +90,15 @@ class TestTagCounts {
         assertThat(tagMap.getCount("B"), equalTo(3));
         assertThat(tagMap.getCount("A"), equalTo(1));
         assertThat(tagMap.getCount("C"), equalTo(0));
+        Set<String> testSet = Set.of("B", "C", "D");
+        tagMap.count(testSet);
+        assertThat(tagMap.size(), equalTo(6));
+        assertThat(tagMap.getCount("F"), equalTo(10));
+        assertThat(tagMap.getCount("D"), equalTo(7));
+        assertThat(tagMap.getCount("E"), equalTo(4));
+        assertThat(tagMap.getCount("B"), equalTo(4));
+        assertThat(tagMap.getCount("A"), equalTo(1));
+        assertThat(tagMap.getCount("C"), equalTo(1));
     }
 
 }

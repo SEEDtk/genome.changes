@@ -168,6 +168,15 @@ public class TagCounts {
     }
 
     /**
+     * Increment a set of counts.
+     *
+     * @param keys	set of tag strings whose counts are to be incremented
+     */
+    public void count(Collection<String> keys) {
+        keys.stream().forEach(x -> this.count(x, 1));
+    }
+
+    /**
      * Erase all the counts in this map.
      */
     public void clear() {
