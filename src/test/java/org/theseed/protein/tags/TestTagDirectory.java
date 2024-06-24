@@ -22,7 +22,7 @@ import org.theseed.proteins.RoleMap;
  * @author Bruce Parrello
  *
  */
-class TagDirectoryTest implements FeatureScanner.IParms {
+class TestTagDirectory implements FeatureScanner.IParms {
 
     private static final File ROLE_FILE_NAME = new File("data", "roles.in.subsystems");
     protected static final String[] GENOME_SET_1 = new String[] { "487.3695", "487.3696", "487.3699", "487.3700", "487.3705"};

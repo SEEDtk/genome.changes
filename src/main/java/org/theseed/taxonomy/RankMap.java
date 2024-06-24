@@ -157,7 +157,7 @@ public class RankMap {
     /**
      * Add a genome to this rank map.
      *
-     * @param genomeID	ID of the genome to add
+     * @param genomeId	ID of the genome to add
      * @param rankData	taxonomic ID and name for this rank
      */
     public void add(String genomeId, TaxItem rankData) {
