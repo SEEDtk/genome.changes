@@ -6,7 +6,6 @@ package org.theseed.protein.tags;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.genome.Genome;
-import org.theseed.io.LineReader;
+import org.theseed.io.SetFile;
 import org.theseed.protein.tags.scanner.FeatureScanner;
 
 /**
@@ -108,9 +107,7 @@ public class TagDirectory {
         String genomeId = genome.getId();
         File genomeFile = this.getGenomeFile(genomeId);
         // Write the set to the file.
-        try (PrintWriter writer = new PrintWriter(genomeFile)) {
-            tags.stream().forEach(x -> writer.println(x));
-        }
+        SetFile.save(genomeFile, tags);
         // Update the map.
         this.fileMap.put(genomeId, genomeFile);
     }
@@ -130,7 +127,7 @@ public class TagDirectory {
         if (genomeFile == null)
             retVal = EMPTY_TAG_SET;
         else
-            retVal = LineReader.readSet(genomeFile);
+            retVal = SetFile.load(genomeFile);
         return retVal;
     }
 

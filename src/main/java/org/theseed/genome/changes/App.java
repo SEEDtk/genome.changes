@@ -8,6 +8,7 @@ import org.theseed.basic.BaseProcessor;
  * Commands for analyzing differences between features in sets of genomes..
  *
  *	buildTags		build a tag directory for a genome source
+ *  buildTax		build taxonomy lists for a genome source
  *
  */
 public class App
@@ -20,6 +21,9 @@ public class App
         BaseProcessor processor;
         // Determine the command to process.
         switch (command) {
+        case "buildTax" :
+            processor = new BuildTaxonomyListProcessor();
+            break;
         case "buildTags" :
             processor = new BuildTagDirectoryProcessor();
             break;
