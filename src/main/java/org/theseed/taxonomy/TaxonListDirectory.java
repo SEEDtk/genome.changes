@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -52,7 +55,7 @@ public class TaxonListDirectory {
      */
     public static int getRankLevel(String rank) {
         int retVal = RANKS.length - 1;
-        while (! RANKS[retVal].contentEquals(rank)) retVal--;
+        while (retVal >= 0 && ! RANKS[retVal].contentEquals(rank)) retVal--;
         return retVal;
     }
 
@@ -80,21 +83,22 @@ public class TaxonListDirectory {
      * Construct a list-directory object from a specified directory.  If the directory
      * does not exist it will be created.
      *
-     * @param dirName	name of the directory to use
+     * @param taxDir	name of the directory to use
      *
      * @throws IOException
      */
-    public TaxonListDirectory(File dirName) throws IOException {
-        if (! dirName.isDirectory())
-            FileUtils.forceMkdir(dirName);
+    public TaxonListDirectory(File taxDir) throws IOException {
+        this.dirName = taxDir;
+        if (! taxDir.isDirectory())
+            FileUtils.forceMkdir(taxDir);
         // Create the rank map.
         this.rankFiles = new File[RANKS.length];
         // Compute the taxonomic tree file name.
-        this.treeFile = new File(dirName, "tree.links");
+        this.treeFile = new File(taxDir, "tree.links");
         // Loop through the ranks, creating missing files and filling in the map.
         for (int i = 0; i < RANKS.length; i++) {
             String rank = RANKS[i];
-            File rankFile = new File(dirName, rank + TAXON_RANK_MAP_SUFFIX);
+            File rankFile = new File(taxDir, rank + TAXON_RANK_MAP_SUFFIX);
             if (! rankFile.canRead()) {
                 log.info("Creating new rank file {}.", rankFile);
                 EMPTY_RANK_MAP.save(rankFile);
@@ -156,10 +160,9 @@ public class TaxonListDirectory {
                     rankMap.add(genome.getId(), taxItem);
                     taxonCount++;
                     // Form a parent-child link in the tree if needed.
-                    if (lastChild >= 0) {
+                    if (lastChild >= 0)
                         taxTree.addLink(lastChild, taxItem.getId(), rankLevel);
-                        lastChild = taxItem.getId();
-                    }
+                    lastChild = taxItem.getId();
                 }
             }
         }
@@ -169,6 +172,31 @@ public class TaxonListDirectory {
         taxTree.save();
         for (int i = 0; i < RANKS.length; i++)
             rankMaps[i].save(this.rankFiles[i]);
+    }
+
+    /**
+     * This loads all of the rank maps into memory and exposes them in a map keyed
+     * by rank.  Note that it is very memory-intensive.
+     *
+     * @return a map of ranks to rank maps
+     *
+     * @throws IOException
+     */
+    public Map<String, RankMap> getAllRankMaps() throws IOException {
+        Map<String, RankMap> retVal = new TreeMap<String, RankMap>();
+        for (String rank : RANKS)
+            retVal.put(rank, this.getRankMap(rank));
+        return retVal;
+    }
+
+    /**
+     * @return the taxonomy tree
+     *
+     * @throws IOException
+     */
+    public Map<Integer, Set<Integer>> getTaxTree() throws IOException {
+        TaxTree taxTree = new TaxTree(this.treeFile);
+        return taxTree.getTree();
     }
 
 }
