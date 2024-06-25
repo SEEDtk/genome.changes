@@ -89,8 +89,11 @@ public class TaxonListDirectory {
      */
     public TaxonListDirectory(File taxDir) throws IOException {
         this.dirName = taxDir;
-        if (! taxDir.isDirectory())
+        if (! taxDir.isDirectory()) {
             FileUtils.forceMkdir(taxDir);
+            log.info("Creating taxon list directory {}.", taxDir);
+        } else
+            log.info("Using taxon list directory {}.", taxDir);
         // Create the rank map.
         this.rankFiles = new File[RANKS.length];
         // Compute the taxonomic tree file name.
