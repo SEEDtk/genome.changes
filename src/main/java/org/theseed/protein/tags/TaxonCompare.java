@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,8 +128,8 @@ public class TaxonCompare {
         final Map<Integer, Set<String>> retVal = new ConcurrentHashMap<Integer, Set<String>>();
         // Loop through the tree, processing children of sibling sets.  Comparisons only
         // matter if there is more than one sibling in the set.
-        this.taxTree.values().parallelStream().filter(x -> x.size() > 1)
-                .forEach(x -> this.processChildren(retVal, x));
+        Set<Set<Integer>> siblingSets = this.taxTree.values().stream().filter(x -> x.size() > 1).collect(Collectors.toSet());
+        siblingSets.parallelStream().forEach(x -> this.processChildren(retVal, x));
         return retVal;
     }
 
@@ -152,12 +153,14 @@ public class TaxonCompare {
             }
             // Now we compute the distinguishing sets and store them in the output map.
             for (SiblingData data : siblingList) {
+                final int taxId = data.getTaxId();
                 int leftSize = data.getSize();
                 int rightSize = totalSize - leftSize;
                 TagCounts leftTags = data.getCounts();
                 TagCounts rightTags = totalTags.minus(leftTags);
                 Set<String> distinguishingTags = this.compareEngine.distinguishLeft(leftTags, leftSize, rightTags, rightSize);
-                outMap.put(data.getTaxId(), distinguishingTags);
+                outMap.put(taxId, distinguishingTags);
+                log.info("{} distinguishing tags found for {}.", distinguishingTags.size(), taxId);
             }
         } catch (IOException e) {
             // Convert IO exceptions to unchecked so we can stream this method.
