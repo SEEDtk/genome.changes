@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,13 +136,21 @@ public class TaxTree {
      * @return the actual taxonomic tree
      */
     public Map<Integer, Set<Integer>> getTree() {
+        // Create a set of all the parents.
+        Set<Integer> parents = this.linkMap.values().stream().map(x -> x.getParent()).collect(Collectors.toSet());
+        // Build a map of parents to sets of children.
         Map<Integer, Set<Integer>> retVal = new HashMap<Integer, Set<Integer>>();
         for (var linkEntry : this.linkMap.entrySet()) {
+            // Get this child ID and remove it from the parent set.
             int childId = linkEntry.getKey();
+            parents.remove(childId);
+            // Put the child in the parent's child list.
             Node linkNode = linkEntry.getValue();
             Set<Integer> childSet = retVal.computeIfAbsent(linkNode.getParent(), x -> new HashSet<Integer>());
             childSet.add(childId);
         }
+        // Create a root node for the high-level parents.
+        retVal.put(1, parents);
         log.info("Taxonomic tree built with {} parents and {} children.", retVal.size(), this.linkMap.size());
         return retVal;
     }

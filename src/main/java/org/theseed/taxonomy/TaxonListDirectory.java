@@ -5,7 +5,9 @@ package org.theseed.taxonomy;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -17,13 +19,15 @@ import org.slf4j.LoggerFactory;
 import org.theseed.genome.Genome;
 import org.theseed.genome.TaxItem;
 import org.theseed.genome.iterator.GenomeSource;
+import org.theseed.io.TabbedLineReader;
 
 /**
  * This object controls a master directory of taxonomy lists.  The master directory has one file for
  * each taxonomic rank, with the rank name and a suffix of ".tax", plus one file for the taxonomic
- * tree relationship with a name of "tree.links"  The rank file contains a list of the
- * genomes for each taxonomic grouping within that rank.  The first column is the grouping ID, the
- * second column is the grouping name, and the third column is the genome IDs, comma-delimited.
+ * tree relationship with a name of "tree.links" and one that returns the rank of each taxonomic grouping
+ * with a name of "ranks.idx".  The rank file contains a list of the genomes for each taxonomic grouping
+ * within that rank.  The first column is the grouping ID, the second column is the grouping name, and the
+ * third column is the genome IDs, comma-delimited.
  *
  * @author Bruce Parrello
  *
@@ -39,12 +43,16 @@ public class TaxonListDirectory {
     private File[] rankFiles;
     /** file name for taxonomic tree */
     private File treeFile;
+    /** map of taxonomic grouping IDs to ranks */
+    private Map<Integer, String> rankIndex;
     /** file suffix for taxon rank map files */
     private static final String TAXON_RANK_MAP_SUFFIX = ".tax";
     /** array of taxonomic ranks in order */
     public static final String[] RANKS = new String[] { "superkingdom", "phylum", "class", "order", "family", "genus", "species" };
     /** empty rank map for creating new rank map files */
     private static final RankMap EMPTY_RANK_MAP = new RankMap();
+    /** rank index file name */
+    private static final String RANK_INDEX_NAME = "rank.index";
 
     /**
      * Return the level of a taxonomic rank.
@@ -96,8 +104,9 @@ public class TaxonListDirectory {
             log.info("Using taxon list directory {}.", taxDir);
         // Create the rank map.
         this.rankFiles = new File[RANKS.length];
-        // Compute the taxonomic tree file name.
+        // Compute the taxonomic tree file name and the rank index name.
         this.treeFile = new File(taxDir, "tree.links");
+        File rankIndexFile = new File(taxDir, RANK_INDEX_NAME);
         // Loop through the ranks, creating missing files and filling in the map.
         for (int i = 0; i < RANKS.length; i++) {
             String rank = RANKS[i];
@@ -107,6 +116,21 @@ public class TaxonListDirectory {
                 EMPTY_RANK_MAP.save(rankFile);
             }
             this.rankFiles[i] = rankFile;
+        }
+        // Set up the rank index.
+        this.rankIndex = new HashMap<Integer, String>();
+        if (! rankIndexFile.canRead()) {
+            log.info("Creating rank index file {}.", rankIndexFile);
+            try (PrintWriter writer = new PrintWriter(rankIndexFile)) {
+                writer.println("tax_id\trank");
+            }
+        } else {
+            log.info("Reading rank index from {}.", rankIndexFile);
+            try (TabbedLineReader rankStream = new TabbedLineReader(rankIndexFile)) {
+                for (var line : rankStream)
+                    this.rankIndex.put(line.getInt(0), line.get(1));
+                log.info("{} taxonomic groupings found in rank index.", this.rankIndex.size());
+            }
         }
     }
 
@@ -166,6 +190,8 @@ public class TaxonListDirectory {
                     if (lastChild >= 0)
                         taxTree.addLink(lastChild, taxItem.getId(), rankLevel);
                     lastChild = taxItem.getId();
+                    // Add the taxonomic grouping to the rank index.
+                    this.rankIndex.put(taxItem.getId(), taxItem.getRank());
                 }
             }
         }
@@ -175,6 +201,12 @@ public class TaxonListDirectory {
         taxTree.save();
         for (int i = 0; i < RANKS.length; i++)
             rankMaps[i].save(this.rankFiles[i]);
+        File rankIndexFile = new File(this.dirName, RANK_INDEX_NAME);
+        try (PrintWriter writer = new PrintWriter(rankIndexFile)) {
+            writer.println("tax_id\trank");
+            for (var rankEntry : this.rankIndex.entrySet())
+                writer.println(rankEntry.getKey() + "\t" + rankEntry.getValue());
+        }
     }
 
     /**
@@ -200,6 +232,15 @@ public class TaxonListDirectory {
     public Map<Integer, Set<Integer>> getTaxTree() throws IOException {
         TaxTree taxTree = new TaxTree(this.treeFile);
         return taxTree.getTree();
+    }
+
+    /**
+     * @return the rank of a taxonomic ID, or NULL if the ID does not exist in this directory
+     *
+     * @param taxId		taxonomic grouping ID of interest
+     */
+    public String getRank(int taxId) {
+        return this.rankIndex.get(taxId);
     }
 
 }

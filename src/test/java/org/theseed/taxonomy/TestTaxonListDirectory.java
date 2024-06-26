@@ -41,7 +41,9 @@ class TestTaxonListDirectory {
         }
         taxController.updateRankMaps(genomes);
         File treeFile = new File(taxDir, "tree.links");
+        File rankFile = new File(taxDir, "rank.index");
         assertThat(treeFile.canRead(), equalTo(true));
+        assertThat(rankFile.canRead(), equalTo(true));
         // This map will help us check the taxonomy tree.
         Map<Integer, String> taxons = new HashMap<Integer, String>();
         // Get the tree itself.
@@ -67,6 +69,8 @@ class TestTaxonListDirectory {
                         // Here we are a parent group, so we'll be in the taxonomy tree.
                         assertThat(taxTree.containsKey(taxItem.getId()), equalTo(true));
                     }
+                    // Insure we're in the rank index.
+                    assertThat(taxController.getRank(taxItem.getId()), equalTo(rank));
                     // Save the rank for later.
                     taxons.put(taxItem.getId(), rank);
                 }
@@ -79,22 +83,23 @@ class TestTaxonListDirectory {
             int parent = taxEntry.getKey();
             String pLabel = "parent " + parent;
             String rank = taxons.get(parent);
-            assertThat(pLabel, rank, not(nullValue()));
-            RankMap parentMap = rankMapMap.get(rank);
-            Set<String> parentGenomes = parentMap.getTaxData(parent).getGenomes();
-            // Check the children.
-            for (int child : taxEntry.getValue()) {
-                String cLabel = pLabel + " child " + child;
-                String rank2 = taxons.get(child);
-                assertThat(cLabel, rank2, not(nullValue()));
-                RankMap childMap = rankMapMap.get(rank2);
-                Set<String> childGenomes = childMap.getTaxData(child).getGenomes();
-                for (String childGenome : childGenomes)
-                    assertThat(cLabel, parentGenomes, hasItem(childGenome));
+            // Only proceed if we are NOT the virtual root parent.
+            if (parent != 1) {
+                assertThat(pLabel, rank, not(nullValue()));
+                RankMap parentMap = rankMapMap.get(rank);
+                Set<String> parentGenomes = parentMap.getTaxData(parent).getGenomes();
+                // Check the children.
+                for (int child : taxEntry.getValue()) {
+                    String cLabel = pLabel + " child " + child;
+                    String rank2 = taxons.get(child);
+                    assertThat(cLabel, rank2, not(nullValue()));
+                    RankMap childMap = rankMapMap.get(rank2);
+                    Set<String> childGenomes = childMap.getTaxData(child).getGenomes();
+                    for (String childGenome : childGenomes)
+                        assertThat(cLabel, parentGenomes, hasItem(childGenome));
+                }
             }
-
         }
-        // TODO test taxon list directory
     }
 
 }

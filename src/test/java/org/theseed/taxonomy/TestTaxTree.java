@@ -23,25 +23,25 @@ class TestTaxTree {
     void testTaxTree() throws IOException {
         // The test tree is
         //  r1    r3   r5     r6
-        //	1 --> 2 --> 4, 5, 6
-        //		  3 --> 7 --> 8, 9
-        //		 	   10 --> 11 --> 12
+        //	99 --> 2 --> 4, 5, 6
+        //		   3 --> 7 --> 8, 9
+        //		 	    10 --> 11 --> 12
         File saveFile = new File("data", "taxTree.ser");
         if (saveFile.canRead())
             FileUtils.forceDelete(saveFile);
         TaxTree testTree = new TaxTree(saveFile);
         assertThat(testTree.isEmpty(), equalTo(true));
         // This is a level-skip that tests the merging.
-        testTree.addLink(9, 1, 1);
+        testTree.addLink(9, 99, 1);
         // Now the normal tree.  These have been shuffled randomly.
         testTree.addLink(7, 3, 3);
         testTree.addLink(4, 2, 3);
         testTree.addLink(11, 10, 5);
         testTree.addLink(6, 2, 3);
-        testTree.addLink(2, 1, 1);
+        testTree.addLink(2, 99, 1);
         testTree.addLink(9, 7, 5);
         testTree.addLink(10, 3, 3);
-        testTree.addLink(3, 1, 1);
+        testTree.addLink(3, 99, 1);
         testTree.addLink(12, 11, 6);
         testTree.addLink(6, 2, 3);
         testTree.addLink(5, 2, 3);
@@ -63,6 +63,8 @@ class TestTaxTree {
     private void validateTree(TaxTree testTree) {
         var actualTree = testTree.getTree();
         Set<Integer> children = actualTree.get(1);
+        assertThat(children, containsInAnyOrder(99));
+        children = actualTree.get(99);
         assertThat(children, containsInAnyOrder(2, 3));
         children = actualTree.get(2);
         assertThat(children, containsInAnyOrder(4, 5, 6));
