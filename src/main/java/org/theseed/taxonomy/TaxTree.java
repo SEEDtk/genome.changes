@@ -34,6 +34,8 @@ public class TaxTree {
     private Map<Integer, Node> linkMap;
     /** map file name */
     private File fileName;
+    /** taxonomic grouping ID for the root group */
+    public static final int ROOT_GROUP = 1;
 
     /**
      * This class contains a parent ID and the parent's level.
@@ -150,7 +152,7 @@ public class TaxTree {
             childSet.add(childId);
         }
         // Create a root node for the high-level parents.
-        retVal.put(1, parents);
+        retVal.put(ROOT_GROUP, parents);
         log.info("Taxonomic tree built with {} parents and {} children.", retVal.size(), this.linkMap.size());
         return retVal;
     }

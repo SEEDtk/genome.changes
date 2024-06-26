@@ -82,6 +82,22 @@ public class TagDirectory {
     }
 
     /**
+     * @return the tag counts for a set of genomes
+     *
+     * @param genomeSet		set of IDs for the genomes to count
+     *
+     * @throws IOException
+     */
+    public TagCounts getTagCounts(Set<String> genomeSet) throws IOException {
+        TagCounts retVal = new TagCounts();
+        for (String genomeId : genomeSet) {
+            Set<String> tags = this.getGenome(genomeId);
+            retVal.count(tags);
+        }
+        return retVal;
+    }
+
+    /**
      * Convert a genome ID to a file name.
      *
      * @param genomeId		ID of the genome of interest

@@ -177,6 +177,35 @@ public class TagCounts {
     }
 
     /**
+     * Merge another set of tag counts into this one.
+     *
+     * @param other		other tag count set to merge
+     */
+    public void merge(TagCounts other) {
+        for (var counter : other.getAllCounts())
+            this.count(counter.getKey(), counter.getValue().getValue());
+    }
+
+    /**
+     * Compute the result of subtracting another set of tag counts from these counts.
+     * If a count does not exist in this map, it will not be affected. (That is, there
+     * are not going to be negative counts.)
+     *
+     * @param other		other tag count set to subtract
+     *
+     * @return the result of subtracting the other tag counts from this tag count map
+     */
+    public TagCounts minus(TagCounts other) {
+        TagCounts retVal = new TagCounts((this.size() + 2) / 3 * 4 + 1);
+        for (var counter : this.getAllCounts()) {
+            String key = counter.getKey();
+            int value = counter.getValue().getValue() - other.getCount(key);
+            retVal.setCount(key, value);
+        }
+        return retVal;
+    }
+
+    /**
      * Erase all the counts in this map.
      */
     public void clear() {

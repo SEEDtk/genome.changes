@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -241,6 +242,40 @@ public class TaxonListDirectory {
      */
     public String getRank(int taxId) {
         return this.rankIndex.get(taxId);
+    }
+
+    /**
+     * @return a map from each taxonomic ID to the set of genomes in its group
+     *
+     * @param taxSet	set of taxonomic IDs to process
+     *
+     * @throws IOException
+     */
+    public Map<Integer, Set<String>> getGenomeSets(Set<Integer> taxSet) throws IOException {
+        // Begin by getting a map from each represented rank to the set of taxons in that rank.
+        // We expect a very small number of keys here.
+        Map<String, Set<Integer>> rankSorter = new TreeMap<String, Set<Integer>>();
+        for (int taxId : taxSet) {
+            String rank = this.getRank(taxId);
+            Set<Integer> rankSet = rankSorter.computeIfAbsent(rank, x -> new HashSet<Integer>());
+            rankSet.add(taxId);
+        }
+        // Now we process each rank set, filling in the output set.
+        Map<Integer, Set<String>> retVal = new HashMap<Integer, Set<String>>(taxSet.size() * 4 / 3 + 1);
+        for (var rankEntry : rankSorter.entrySet()) {
+            // Get the map for this rank.
+            String rank = rankEntry.getKey();
+            RankMap rankMap = this.getRankMap(rank);
+            // Loop through the taxons of this rank, putting them in the output map.
+            for (int taxId : rankEntry.getValue()) {
+                var taxData = rankMap.getTaxData(taxId);
+                if (taxData == null)
+                    throw new IOException("Taxon list directory " + this.dirName + " has a taxon tree that does not match its rank maps.");
+                Set<String> genomes = taxData.getGenomes();
+                retVal.put(taxId, genomes);
+            }
+        }
+        return retVal;
     }
 
 }

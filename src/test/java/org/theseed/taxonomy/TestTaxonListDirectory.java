@@ -100,6 +100,20 @@ class TestTaxonListDirectory {
                 }
             }
         }
+        // Now test the mass genome-set retrieval.
+        Set<Integer> taxSet = Set.of(481, 561, 724, 570);
+        Map<Integer, Set<String>> genomeSetMap = taxController.getGenomeSets(taxSet);
+        for (var taxEntry : genomeSetMap.entrySet()) {
+            // Get the tax ID and the genome ID.
+            int taxId = taxEntry.getKey();
+            String label = "taxon " + taxId;
+            Set<String> genomeSet = taxEntry.getValue();
+            RankMap rankMap = rankMapMap.get(taxController.getRank(taxId));
+            assertThat(label, rankMap, not(nullValue()));
+            var taxData = rankMap.getTaxData(taxId);
+            assertThat(label, taxData, not(nullValue()));
+            assertThat(label, genomeSet, equalTo(taxData.getGenomes()));
+        }
     }
 
 }

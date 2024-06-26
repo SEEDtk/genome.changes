@@ -62,7 +62,7 @@ class TestTaxTree {
      */
     private void validateTree(TaxTree testTree) {
         var actualTree = testTree.getTree();
-        Set<Integer> children = actualTree.get(1);
+        Set<Integer> children = actualTree.get(TaxTree.ROOT_GROUP);
         assertThat(children, containsInAnyOrder(99));
         children = actualTree.get(99);
         assertThat(children, containsInAnyOrder(2, 3));

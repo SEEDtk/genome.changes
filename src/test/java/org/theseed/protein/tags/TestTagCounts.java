@@ -99,6 +99,37 @@ class TestTagCounts {
         assertThat(tagMap.getCount("B"), equalTo(4));
         assertThat(tagMap.getCount("A"), equalTo(1));
         assertThat(tagMap.getCount("C"), equalTo(1));
+        // Test add and subtract here.
+        TagCounts tagMap2 = new TagCounts();
+        tagMap2.count("A", 3);
+        tagMap2.count("E", 1);
+        tagMap2.count("J", 2);
+        tagMap.merge(tagMap2);
+        assertThat(tagMap.size(), equalTo(7));
+        assertThat(tagMap.getCount("F"), equalTo(10));
+        assertThat(tagMap.getCount("D"), equalTo(7));
+        assertThat(tagMap.getCount("E"), equalTo(5));
+        assertThat(tagMap.getCount("B"), equalTo(4));
+        assertThat(tagMap.getCount("A"), equalTo(4));
+        assertThat(tagMap.getCount("C"), equalTo(1));
+        assertThat(tagMap.getCount("J"), equalTo(2));
+        TagCounts tagMap3 = tagMap.minus(tagMap2);
+        assertThat(tagMap3.getCount("F"), equalTo(10));
+        assertThat(tagMap3.getCount("D"), equalTo(7));
+        assertThat(tagMap3.getCount("E"), equalTo(4));
+        assertThat(tagMap3.getCount("B"), equalTo(4));
+        assertThat(tagMap3.getCount("A"), equalTo(1));
+        assertThat(tagMap3.getCount("C"), equalTo(1));
+        assertThat(tagMap3.getCount("J"), equalTo(0));
+        // Insure the original is unchanged.
+        assertThat(tagMap.size(), equalTo(7));
+        assertThat(tagMap.getCount("F"), equalTo(10));
+        assertThat(tagMap.getCount("D"), equalTo(7));
+        assertThat(tagMap.getCount("E"), equalTo(5));
+        assertThat(tagMap.getCount("B"), equalTo(4));
+        assertThat(tagMap.getCount("A"), equalTo(4));
+        assertThat(tagMap.getCount("C"), equalTo(1));
+        assertThat(tagMap.getCount("J"), equalTo(2));
     }
 
 }
