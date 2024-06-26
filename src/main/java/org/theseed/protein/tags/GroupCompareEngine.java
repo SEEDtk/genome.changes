@@ -21,6 +21,9 @@ import org.theseed.utils.SetPair;
  * the constructor.  The tuning parameters and the TagDirectory remain inviolate.  The client can then
  * specify different genome set pairs and extract the two distinguishing tag sets.
  *
+ * This object is designed to be thread-safe.  None of the object fields are altered, and the tag directory
+ * is read, but never updated.
+ *
  * @author Bruce Parrello
  *
  */
@@ -30,11 +33,11 @@ public class GroupCompareEngine {
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(GroupCompareEngine.class);
     /** tag directory object */
-    private TagDirectory tagDir;
+    final private TagDirectory tagDir;
     /** maxmimum fraction of a set to qualify as absent */
-    private double maxAbsent;
+    final private double maxAbsent;
     /** minimum fraction of a set to quality as present */
-    private double minPresent;
+    final private double minPresent;
 
     /**
      * Construct a new compare-groups object.
@@ -62,25 +65,33 @@ public class GroupCompareEngine {
      * tag is distinguishing if it is present in one genome set but neither present nor semi-present
      * in the other.
      *
-     * @param set	genome set whose tags are to be counted
+     * @param genomeSet	genome set whose tags are to be counted
      *
      * @return a set pair consisting of the present tags and the semi-present tags, respectively
      *
      * @throws IOException
      */
-    public SetPair<String> countTags(Set<String> set) throws IOException {
-        TagCounts counts = new TagCounts();
-        // Loop through the genome set.
-        for (String genome : set) {
-            Set<String> tags = this.tagDir.getGenome(genome);
-            counts.count(tags);
-        }
+    public SetPair<String> countTags(Set<String> genomeSet) throws IOException {
+        TagCounts counts = this.tagDir.getTagCounts(genomeSet);
+        int size = genomeSet.size();
+        return this.analyzeTagCounts(counts, size);
+    }
+
+    /**
+     * Analyze the tag counts for a genome set.
+     *
+     * @param counts	tag counts for the set
+     * @param size		number of genomes in the set
+     *
+     * @return a set pair consisting of the present tags and the semi-present tags, respectively
+     */
+    private SetPair<String> analyzeTagCounts(TagCounts counts, int size) {
         // Now we want to separate out the presence and absence sets.
         Set<String> present = new HashSet<String>();
         Set<String> semi = new HashSet<String>();
         // Compute the presence and absence thresholds for the set.
-        int setPresent = (int) Math.ceil(set.size() * this.minPresent);
-        int setAbsent = (int) Math.floor(set.size() * this.maxAbsent);
+        int setPresent = (int) Math.ceil(size * this.minPresent);
+        int setAbsent = (int) Math.floor(size * this.maxAbsent);
         for (var counter : counts.getAllCounts()) {
             int count = counter.getValue().getValue();
             if (count >= setPresent)
@@ -132,6 +143,23 @@ public class GroupCompareEngine {
     }
 
     /**
+     * Compute the tags that distinguish the left genome set from the right genome set.  Both sets
+     * are represented by tag counts.
+     *
+     * @param leftCounts	tag counts for the left genome set
+     * @param leftSize		number of genomes in the left set
+     * @param rightCounts`	tag counts for the right genome set
+     * @param rightSize		number of genomes in the right set
+     *
+     * @return the tags that are present in the left set and absent in the right set
+     */
+    public Set<String> distinguishLeft(TagCounts leftCounts, int leftSize, TagCounts rightCounts, int rightSize) {
+        SetPair<String> leftTags = this.analyzeTagCounts(leftCounts, leftSize);
+        SetPair<String> rightTags = this.analyzeTagCounts(rightCounts, rightSize);
+        return this.computeDistinguishing(leftTags, rightTags);
+    }
+
+    /**
      * Compute the tags that distinguish the first set.  A tag is distinguishing if it is present in the first
      * set but absent in the second.  Each incoming set pair contains present and semi-present tags (which are
      * non-intersecting sets).  A tag is absent if it is neither present nor semi-present.
@@ -141,7 +169,7 @@ public class GroupCompareEngine {
      *
      * @return the set of distinguishing tags for the first set
      */
-    private Set<String> computeDistinguishing(SetPair<String> set1Tags, SetPair<String> set2Tags) {
+    public Set<String> computeDistinguishing(SetPair<String> set1Tags, SetPair<String> set2Tags) {
         Set<String> retVal = new HashSet<String>(set1Tags.getSet1());
         retVal.removeAll(set2Tags.getSet1());
         retVal.removeAll(set2Tags.getSet2());

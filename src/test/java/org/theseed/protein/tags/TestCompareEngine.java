@@ -79,6 +79,11 @@ class TestCompareEngine implements FeatureScanner.IParms {
         SetPair<String> newDiff = testEngine.distinguish(GENOMES1, GENOMES2);
         assertThat(newDiff.getSet1(), equalTo(diff.getSet1()));
         assertThat(newDiff.getSet2(), equalTo(diff.getSet2()));
+        // Now try for the left only with the tag count interface.
+        TagCounts counts1 = tags.getTagCounts(GENOMES1);
+        TagCounts counts2 = tags.getTagCounts(GENOMES2);
+        Set<String> newDiff1 = testEngine.distinguishLeft(counts1, GENOMES1.size(), counts2, GENOMES2.size());
+        assertThat(newDiff1, equalTo(diff1));
     }
 
     /**
