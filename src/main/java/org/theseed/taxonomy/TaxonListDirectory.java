@@ -245,6 +245,27 @@ public class TaxonListDirectory {
     }
 
     /**
+     * @return a map from the specified taxonomic IDs to names
+     *
+     * @param taxSet	set of taxonomic IDs of interest
+     *
+     * @throws IOException
+     */
+    public Map<Integer, String> getNameMap(Set<Integer> taxSet) throws IOException {
+        Map<Integer, String> retVal = new HashMap<Integer, String>((taxSet.size() + 2) / 3 * 4 + 1);
+        // Get a rank sorter for this taxonomic ID set.  This enables us to get the rank maps efficiently.
+        Map<String, Set<Integer>> rankSorter = this.getRankSorter(taxSet);
+        for (var subSet : rankSorter.entrySet()) {
+            RankMap rankMap = this.getRankMap(subSet.getKey());
+            for (int taxId : subSet.getValue()) {
+                String name = rankMap.getTaxData(taxId).getName();
+                retVal.put(taxId, name);
+            }
+        }
+        return retVal;
+    }
+
+    /**
      * @return a map from each taxonomic ID to the set of genomes in its group
      *
      * @param taxSet	set of taxonomic IDs to process
@@ -254,12 +275,7 @@ public class TaxonListDirectory {
     public Map<Integer, Set<String>> getGenomeSets(Set<Integer> taxSet) throws IOException {
         // Begin by getting a map from each represented rank to the set of taxons in that rank.
         // We expect a very small number of keys here.
-        Map<String, Set<Integer>> rankSorter = new TreeMap<String, Set<Integer>>();
-        for (int taxId : taxSet) {
-            String rank = this.getRank(taxId);
-            Set<Integer> rankSet = rankSorter.computeIfAbsent(rank, x -> new HashSet<Integer>());
-            rankSet.add(taxId);
-        }
+        Map<String, Set<Integer>> rankSorter = this.getRankSorter(taxSet);
         // Now we process each rank set, filling in the output set.
         Map<Integer, Set<String>> retVal = new HashMap<Integer, Set<String>>(taxSet.size() * 4 / 3 + 1);
         for (var rankEntry : rankSorter.entrySet()) {
@@ -274,6 +290,24 @@ public class TaxonListDirectory {
                 Set<String> genomes = taxData.getGenomes();
                 retVal.put(taxId, genomes);
             }
+        }
+        return retVal;
+    }
+
+    /**
+     * Sort the specified taxonomic IDs into sets by rank so we can read them from the
+     * rank map files efficiently.
+     *
+     * @param taxSet	set of taxonomic IDs of interest
+     *
+     * @return a map from rank names to taxonomic ID lists
+     */
+    private Map<String, Set<Integer>> getRankSorter(Set<Integer> taxSet) {
+        Map<String, Set<Integer>> retVal = new TreeMap<String, Set<Integer>>();
+        for (int taxId : taxSet) {
+            String rank = this.getRank(taxId);
+            Set<Integer> rankSet = retVal.computeIfAbsent(rank, x -> new HashSet<Integer>());
+            rankSet.add(taxId);
         }
         return retVal;
     }

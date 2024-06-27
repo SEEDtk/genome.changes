@@ -74,6 +74,10 @@ class TestTaxonCompare implements FeatureScanner.IParms {
         assertThat(tags1236, equalTo(diffs.getSet1()));
         Set<String> tags28216 = taxonTagMap.get(28216);
         assertThat(tags28216, equalTo(diffs.getSet2()));
+        Map<Integer, String> nameMap = compareEngine.getNameMap(taxes);
+        assertThat(nameMap.size(), equalTo(2));
+        assertThat(nameMap.get(1236), equalTo("Gammaproteobacteria"));
+        assertThat(nameMap.get(28216), equalTo("Betaproteobacteria"));
     }
 
     @Override

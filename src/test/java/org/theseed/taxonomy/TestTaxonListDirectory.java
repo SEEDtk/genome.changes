@@ -114,6 +114,14 @@ class TestTaxonListDirectory {
             assertThat(label, taxData, not(nullValue()));
             assertThat(label, genomeSet, equalTo(taxData.getGenomes()));
         }
+        // Next test the name mapping.
+        // 481	Neisseriacea, 561	Escherichia, 724	Haemophilus,  570	Klebsiella
+        Map<Integer, String> nameMap = taxController.getNameMap(taxSet);
+        assertThat(nameMap.size(), equalTo(4));
+        assertThat(nameMap.get(481), equalTo("Neisseriaceae"));
+        assertThat(nameMap.get(561), equalTo("Escherichia"));
+        assertThat(nameMap.get(724), equalTo("Haemophilus"));
+        assertThat(nameMap.get(570), equalTo("Klebsiella"));
     }
 
 }

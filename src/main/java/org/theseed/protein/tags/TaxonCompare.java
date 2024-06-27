@@ -167,7 +167,16 @@ public class TaxonCompare {
             throw new UncheckedIOException(e);
         }
     }
-
+    /**
+     * @return a map from the specified taxonomic IDs to names
+     *
+     * @param taxSet	set of taxonomic IDs of interest
+     *
+     * @throws IOException
+     */
+    public Map<Integer, String> getNameMap(Set<Integer> taxSet) throws IOException {
+        return this.taxDir.getNameMap(taxSet);
+    }
     /**
      * Compute the necessary data for each sibling-- tag counts, ID, and set size
      *

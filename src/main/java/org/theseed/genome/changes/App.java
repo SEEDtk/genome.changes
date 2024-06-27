@@ -27,6 +27,9 @@ public class App
         case "buildTags" :
             processor = new BuildTagDirectoryProcessor();
             break;
+        case "taxonCompare" :
+            processor = new TaxonAnalysisProcessor();
+            break;
         default:
             throw new RuntimeException("Invalid command " + command);
         }
