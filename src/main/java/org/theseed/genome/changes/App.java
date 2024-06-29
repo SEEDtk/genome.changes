@@ -9,6 +9,8 @@ import org.theseed.basic.BaseProcessor;
  *
  *	buildTags		build a tag directory for a genome source
  *  buildTax		build taxonomy lists for a genome source
+ *  taxonCompare	find tag differences between taxonomic subgroups of a genome source
+ *  setCompare		find tag differences between two non-intersection subsets of a genome source
  *
  */
 public class App
@@ -29,6 +31,9 @@ public class App
             break;
         case "taxonCompare" :
             processor = new TaxonAnalysisProcessor();
+            break;
+        case "setCompare" :
+            processor = new SetCompareProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

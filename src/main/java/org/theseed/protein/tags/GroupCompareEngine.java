@@ -43,7 +43,7 @@ public class GroupCompareEngine {
      * Construct a new compare-groups object.
      *
      * @param tagSource		TagDirectory object for loading the tags
-     * @oaram absent		maximum fraction of a set allowed for an absent tag
+     * @param absent		maximum fraction of a set allowed for an absent tag
      * @param present		minimum fraction of a set allowed for a present tag
      *
      * @throws ParseFailureException
