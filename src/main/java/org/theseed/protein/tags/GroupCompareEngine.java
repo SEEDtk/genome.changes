@@ -4,7 +4,11 @@
 package org.theseed.protein.tags;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -174,6 +178,35 @@ public class GroupCompareEngine {
         retVal.removeAll(set2Tags.getSet1());
         retVal.removeAll(set2Tags.getSet2());
         return retVal;
+    }
+
+    /**
+     * Compare two sets and write a report about the distinguishing tags.
+     *
+     * @param writer		output print writer for the report
+     * @param genomeSet1	genome IDs for the first set to compare
+     * @param genomeSet2	genome IDs for the second set to compare
+     *
+     * @throws IOException
+     */
+    public void produceDiffReport(PrintWriter writer, Set<String> genomeSet1, Set<String> genomeSet2) throws IOException {
+        log.info("Performing comparison.");
+        SetPair<String> diffTags = this.distinguish(genomeSet1, genomeSet2);
+        // Get the result sets and sort them.
+        List<String> diff1 = new ArrayList<String>(diffTags.getSet1());
+        List<String> diff2 = new ArrayList<String>(diffTags.getSet2());
+        Collections.sort(diff1);
+        Collections.sort(diff2);
+        log.info("{} tags found for set 1, {} tags for set 2.", diff1.size(), diff2.size());
+        // Now write the tags in two columns.
+        writer.println("set1_tags\tset2_tags");
+        final int n = Math.max(diff1.size(), diff2.size());
+        for (int i = 0; i < n; i++) {
+            String leftTag = (i < diff1.size() ? diff1.get(i) : "");
+            String rightTag = (i < diff2.size() ? diff2.get(i) : "");
+            writer.println(leftTag + "\t" + rightTag);
+        }
+
     }
 
 }

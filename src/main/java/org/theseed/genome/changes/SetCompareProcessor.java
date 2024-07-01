@@ -7,9 +7,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,7 +19,6 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.protein.tags.GroupCompareEngine;
 import org.theseed.protein.tags.TagDirectory;
-import org.theseed.utils.SetPair;
 
 /**
  * This command performs a what's-changed comparison on two genome sets.  Like the TaxonAnalysisProcessor, it relies on
@@ -117,22 +113,7 @@ public class SetCompareProcessor extends BaseReportProcessor {
     @Override
     protected void runReporter(PrintWriter writer) throws Exception {
         // Process the comparison.
-        log.info("Performing comparison.");
-        SetPair<String> diffTags = this.compareEngine.distinguish(genomeSet1, genomeSet2);
-        // Get the result sets and sort them.
-        List<String> diff1 = new ArrayList<String>(diffTags.getSet1());
-        List<String> diff2 = new ArrayList<String>(diffTags.getSet2());
-        Collections.sort(diff1);
-        Collections.sort(diff2);
-        log.info("{} tags found for set 1, {} tags for set 2.", diff1.size(), diff2.size());
-        // Now write the tags in two columns.
-        writer.println("set1_tags\tset2_tags");
-        final int n = Math.max(diff1.size(), diff2.size());
-        for (int i = 0; i < n; i++) {
-            String leftTag = (i < diff1.size() ? diff1.get(i) : "");
-            String rightTag = (i < diff2.size() ? diff2.get(i) : "");
-            writer.println(leftTag + "\t" + rightTag);
-        }
+        this.compareEngine.produceDiffReport(writer, genomeSet1, genomeSet2);
     }
 
 }
