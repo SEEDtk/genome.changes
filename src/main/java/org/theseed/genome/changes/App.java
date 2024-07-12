@@ -16,6 +16,15 @@ import org.theseed.basic.BaseProcessor;
  */
 public class App
 {
+    /** static array containing command names and comments */
+    protected static final String[] COMMANDS = new String[] {
+             "buildTags", "build a tag directory for a genome source",
+             "buildTax", "build taxonomy lists for a genome source",
+             "taxonCompare", "find tag differences between taxonomic subgroups of a genome source",
+             "setCompare", "find tag differences between two non-intersecting subsets of a genome source",
+             "setProcess", "scan a genome source for tags and find tag differences between two non-intersecting subsets",
+    };
+
     public static void main( String[] args )
     {
         // Get the control parameter.
@@ -39,13 +48,20 @@ public class App
         case "setProcess" :
             processor = new SetCompareFullProcessor();
             break;
-        default:
-            throw new RuntimeException("Invalid command " + command);
+        case "-h" :
+        case "--help" :
+            processor = null;
+            break;
+        default :
+            throw new RuntimeException("Invalid command " + command + ".");
         }
-        // Process it.
-        boolean ok = processor.parseCommand(newArgs);
-        if (ok) {
-            processor.run();
+        if (processor == null)
+            BaseProcessor.showCommands(COMMANDS);
+        else {
+            boolean ok = processor.parseCommand(newArgs);
+            if (ok) {
+                processor.run();
+            }
         }
     }
 }
