@@ -35,4 +35,10 @@ public class PattyFamFeatureScanner extends FeatureScanner {
         return retVal;
     }
 
+    @Override
+    public String getTagName(String tag) {
+        // A pattyfam's name is the tag itself.
+        return tag;
+    }
+
 }

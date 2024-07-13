@@ -101,6 +101,13 @@ public abstract class FeatureScanner {
     }
 
     /**
+     * @return the name of a tag
+     *
+     * @param tag	tag whose name is desired
+     */
+    public abstract String getTagName(String tag);
+
+    /**
      * @return the set of tags for the current feature
      *
      * @param feat		feature to scan

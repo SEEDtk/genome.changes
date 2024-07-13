@@ -6,10 +6,14 @@ package org.theseed.genome.changes;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +33,9 @@ import org.theseed.taxonomy.TaxonListDirectory;
  * taxonomic group.  The intent is that given a genome in a taxonomic group and the tag of one of its features,
  * you can derive a statement about that feature differentiating the group from others under the same parent.
  *
- * The positional parameter is the directory or file containing the genome source.  The report will be written
- * to the standard output.
+ * The positional parameter is the directory or file containing the genome source.  A separate report will be
+ * written for each genome, in a subdirectory with the genome ID as its name.  (This is an odd choice for the
+ * sake of a specific project.)  The master output directory is the second positional parameter.
  *
  * A temporary tag directory and a temporary taxonomic tree directory will be used.  The taxonomic tree directory
  * will be re-used if it is nonempty, but the tag directory will always be rebuilt.
@@ -40,7 +45,6 @@ import org.theseed.taxonomy.TaxonListDirectory;
  * -h	display command-line usage
  * -v	display more frequent log messages
  * -t	genome source type (default DIR)
- * -o	output file for report (if not STDOUT)
  *
  * --taxDir		working directory for the taxonomic tree; default "TaxTree" in the current directory
  * --tagDir		temporary directory for the tags; default "Temp" in the current directory
@@ -67,14 +71,12 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
     private TaxonListDirectory taxController;
     /** feature scanner for tags */
     private FeatureScanner tagScanner;
-    /** output print writer for report */
-    private PrintWriter writer;
+    /** map of genome IDs to lineages */
+    private Map<String, int[]> lineageMap;
+    /** map of genome IDs to names */
+    private Map<String, String> gNameMap;
 
     // COMMAND-LINE OPTIONS
-
-    /** output file (if not STDOUT) */
-    @Option(name = "--output", aliases = { "-o" }, usage = "output file for report (if not STDOUT)")
-    private File outFile;
 
     /** taxonomic tree directory name */
     @Option(name = "--taxDir", metaVar = "TaxTree", usage = "directory for building or loading the taxonomic tree")
@@ -108,11 +110,14 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
     @Option(name = "--keep", usage = "if specified, the tag directory will not be erased after processing")
     private boolean keepFlag;
 
+    /** output directory name */
+    @Argument(index = 1, metaVar = "outDir", usage = "master output directory")
+    private File outDir;
+
 
     @Override
     protected void setSourceDefaults() {
         File curDir = new File(System.getProperty("user.dir"));
-        this.outFile = null;
         this.taxDir = new File(curDir, "TaxTree");
         this.tagDir = new File(curDir, "Temp");
         this.clearFlag = false;
@@ -127,6 +132,13 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
     protected void validateSourceParms() throws IOException, ParseFailureException {
         // Validate the tuning parameters.
         GroupCompareEngine.validateTuning(this.maxAbsent, this.minPresent);
+        // Validate the output directory.
+        if (this.outDir.isDirectory())
+            log.info("Output will be to directory {}.", this.outDir);
+        else {
+            log.info("Creating output directory {}.", this.outDir);
+            FileUtils.forceMkdir(this.outDir);
+        }
         // Verify that we can create the tag scanner.
         this.tagScanner = this.scanType.create(this);
         // Set up the tag directory.
@@ -153,14 +165,6 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
         }
         // Get the taxonomy tree itself.
         this.taxonTree = this.taxController.getTaxTreeObject();
-        // Open the output print writer.
-        if (this.outFile == null) {
-            log.info("Report will be written to the standard output.");
-            this.writer = new PrintWriter(System.out);
-        } else {
-            log.info("Report will be written to {}.", this.outFile);
-            this.writer = new PrintWriter(this.outFile);
-        }
     }
 
     /**
@@ -177,55 +181,100 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
     @Override
     protected void runCommand() throws Exception {
         try {
-            // The first step is to fill the tag directory.
+            // The first step is to fill the tag directory and create the genome lineage map.
             log.info("Computing tags into {}.", this.tagDir);
             Set<String> genomeIDs = this.getGenomeIds();
+            final int hashSize = genomeIDs.size() * 4 / 3 + 1;
+            this.lineageMap = new HashMap<String, int[]>(hashSize);
+            this.gNameMap = new HashMap<String, String>(hashSize);
             for (String genomeID : genomeIDs) {
                 Genome genome = this.getGenome(genomeID);
                 log.info("Scanning for tags in {}.", genome);
                 this.tagController.addGenome(genome, this.tagScanner);
+                this.lineageMap.put(genomeID, genome.getLineage());
+                this.gNameMap.put(genomeID, genome.getName());
             }
             Map<Integer, Set<String>> diffMap = this.doCompare();
-            // Get the map of taxonomic names.
-            Map<Integer, String> nameMap = this.taxController.getNameMap(diffMap.keySet());
-            // Write the output header.
-            this.writer.println("tax_id\trank\tname\tparent_id\tparent_rank\tparent_name\ttag");
-            long lastMessage = System.currentTimeMillis();
-            int processed = 0;
-            log.info("Writing output.");
-            // Loop through the map entries, writing data.
-            for (var diffEntry : diffMap.entrySet()) {
-                processed++;
-                // Get the taxonomic data.
-                int taxId = diffEntry.getKey();
-                int parentId = this.taxonTree.getParent(taxId);
-                // Only proceed if we have a valid parent.
-                if (parentId >= 0) {
-                    // Get the taxonomic data.
-                    String taxRank = this.taxController.getRank(taxId);
-                    String parentRank = this.taxController.getRank(parentId);
-                    String taxName = nameMap.getOrDefault(taxId, "<unknown>");
-                    String parentName = nameMap.getOrDefault(parentId, "<unknown>");
-                    String taxPrefix = taxId + "\t" + taxRank + "\t" + taxName + "\t" + parentId + "\t" + parentRank
-                            + "\t" + parentName + "\t";
-                    // Write one line per tag.
-                    for (String tag : diffEntry.getValue())
-                        writer.println(taxPrefix + tag);
-                }
-                long now = System.currentTimeMillis();
-                if (now - lastMessage >= 5000) {
-                    log.info("{} of {} taxonomic IDs processed.", processed, diffMap.size());
-                    lastMessage = now;
+            // We need a map of taxonomic names.
+            Map<Integer, String> nameMap = this.getNameMap(diffMap.keySet());
+            // Now we loop through the genomes again.  For each genome, we get its role set and its
+            // taxonomy list, and then we query the differentiation map to create an output report.
+            for (String genomeId : genomeIDs) {
+                String genomeName = this.gNameMap.get(genomeId);
+                log.info("Processing differentials for genome {} {}.", genomeId, genomeName);
+                // Create the output file.
+                File genomeDir = new File(this.outDir, genomeId);
+                if (! genomeDir.isDirectory())
+                    FileUtils.forceMkdir(genomeDir);
+                try (PrintWriter writer = new PrintWriter(new File(genomeDir, "changes.tbl"))) {
+                    writer.println("genome_id\tgenome_name\ttax_id\trank\tname\tparent_id\tparent_rank\tparent_name\ttag_name");
+                    // Now get all the tags for the genome.  This is already in the tag directory.  The
+                    // set we get back is a private copy, which is good because we are going to mess
+                    // it up.
+                    Set<String> genomeTags = this.tagController.getGenome(genomeId);
+                    // Now we loop through the lineage.  For each taxonomic group, we get the differentiating
+                    // tags, and output the ones found in this genome.  We will be moving from the smallest
+                    // grouping to the largest.
+                    int[] lineage = this.lineageMap.get(genomeId);
+                    for (int i = lineage.length - 1; i >= 0; i--) {
+                        int taxId = lineage[i];
+                        int parentId = this.taxonTree.getParent(taxId);
+                        // Only proceed if we have a known parent grouping.
+                        if (parentId >= 0) {
+                            // Get the roles for this child grouping.
+                            Set<String> diffTags = diffMap.get(taxId);
+                            if (diffTags != null) {
+                                // Find the overlapping tags.
+                                Set<String> myTags = diffTags.stream().filter(x -> genomeTags.contains(x)).collect(Collectors.toSet());
+                                if (! myTags.isEmpty()) {
+                                    // Here we have differentiating tags for this genome and this tax ID.
+                                    String taxRank = this.taxController.getRank(taxId);
+                                    String taxName = nameMap.getOrDefault(taxId, "<unknown>");
+                                    String parentRank = this.taxController.getRank(parentId);
+                                    String parentName = nameMap.getOrDefault(parentId, "<unknown>");
+                                    String taxPrefix = genomeId + "\t" + genomeName + "\t" + taxId + "\t" + taxRank + "\t" + taxName
+                                            + "\t" + parentId + "\t" + parentRank + "\t" + parentName + "\t";
+                                    // Write one line per tag, deleting tags as we use them.
+                                    for (String tag : myTags) {
+                                        writer.println(taxPrefix + tagScanner.getTagName(tag));
+                                        genomeTags.remove(tag);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            this.writer.flush();
         } finally {
-            this.writer.close();
             if (! this.keepFlag) {
                 log.info("Erasing tag directory {}.", this.tagDir);
                 FileUtils.cleanDirectory(this.tagDir);
             }
         }
+    }
+
+    /**
+     * This gets a taxonomic name map for all the taxonomic IDs in the specified set and their parents.
+     *
+     * @param keySet	base set of taxonomic IDs
+     *
+     * @return a map from the IDs of the incoming taxonomic groups and their parents to the group names
+     *
+     * @throws IOException
+     */
+    private Map<Integer, String> getNameMap(Set<Integer> keySet) throws IOException {
+        // Get a set and prime it with the incoming group IDs.
+        Set<Integer> idSet = new HashSet<Integer>(keySet.size() * 8 / 3 + 1);
+        idSet.addAll(keySet);
+        // Get the parent IDs.
+        for (int childId : keySet) {
+            int parentId = this.taxonTree.getParent(childId);
+            if (parentId >= 0)
+                idSet.add(parentId);
+        }
+        // Now compute the name map for all of them.
+        Map<Integer, String> retVal = this.taxController.getNameMap(idSet);
+        return retVal;
     }
 
     /**

@@ -62,4 +62,12 @@ public class RoleFeatureScanner extends FeatureScanner {
         return retVal;
     }
 
+    @Override
+    public String getTagName(String tag) {
+        String retVal = this.roleMap.getName(tag);
+        if (retVal == null)
+            retVal = tag;
+        return retVal;
+    }
+
 }
