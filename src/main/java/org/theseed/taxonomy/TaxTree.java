@@ -18,7 +18,7 @@ import org.theseed.io.TabbedLineReader;
 
 /**
  * This object represents a taxonomy tree designed for the TaxonListDirectory.  The key here is that during
- * construction we skip intermeidate levels in the membership, but we want each group associated with the lowest
+ * construction we skip intermediate levels in the membership, but we want each group associated with the lowest
  * possible parent level.  Thus, the first time we may see a parent it may turn out that a better parent becomes
  * available.
  *
@@ -169,6 +169,21 @@ public class TaxTree {
      */
     public File getFileName() {
         return this.fileName;
+    }
+
+    /**
+     * @return the taxonomic ID of the parent group for a specified group
+     *
+     * @param taxId		ID of taxonomic group whose parent is desired, or -1 if there is no parent
+     */
+    public int getParent(int taxId) {
+        var parentNode = this.linkMap.get(taxId);
+        int retVal;
+        if (parentNode == null)
+            retVal = -1;
+        else
+            retVal = parentNode.getParent();
+        return retVal;
     }
 
 }

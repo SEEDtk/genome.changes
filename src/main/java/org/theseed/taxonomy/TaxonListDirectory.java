@@ -236,6 +236,15 @@ public class TaxonListDirectory {
     }
 
     /**
+     * @return the taxonomy tree object
+     *
+     * @throws IOException
+     */
+    public TaxTree getTaxTreeObject() throws IOException {
+        return new TaxTree(this.treeFile);
+    }
+
+    /**
      * @return the rank of a taxonomic ID, or NULL if the ID does not exist in this directory
      *
      * @param taxId		taxonomic grouping ID of interest

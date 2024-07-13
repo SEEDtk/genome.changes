@@ -53,14 +53,26 @@ public class GroupCompareEngine {
      * @throws ParseFailureException
      */
     public GroupCompareEngine(TagDirectory tagSource, double absent, double present) throws ParseFailureException {
+        GroupCompareEngine.validateTuning(absent, present);
+        this.maxAbsent = absent;
+        this.minPresent = present;
+        this.tagDir = tagSource;
+    }
+
+    /**
+     * Validate the tuning parameters for a group comparison engine.
+     *
+     * @param absent		maximum fraction of a set allowed for an absent tag
+     * @param present		minimum fraction of a set allowed for a present tag
+     *
+     * @throws ParseFailureException
+     */
+    public static void validateTuning(double absent, double present) throws ParseFailureException {
         // Validate the tuning parameters.
         if (absent < 0.0 || absent >= 1.0)
             throw new ParseFailureException("Fraction of " + absent + " specified for absence detection must be between 0 and 1.");
         if (present <= 0.0 || present > 1.0)
             throw new ParseFailureException("Fraction of " + present + " specified for presence detection must be between 0 and 1.");
-        this.maxAbsent = absent;
-        this.minPresent = present;
-        this.tagDir = tagSource;
     }
 
     /**

@@ -110,11 +110,42 @@ public class TaxonCompare {
             throw new FileNotFoundException("Taxonomic list directory " + taxDirName + " is not found or invalid.");
         if (! tagDirName.isDirectory())
             throw new FileNotFoundException("Tag directory " + tagDirName + " is not found or invalid.");
-        // Get the taxonomic stuff set up.
+        // Connect to the directories.
         this.taxDir = new TaxonListDirectory(taxDirName);
-        this.taxTree = this.taxDir.getTaxTree();
-        // Create the tag directory and the group comparison engine.
         this.tagDir = new TagDirectory(tagDirName);
+        // Set up the comparison objects.
+        this.initialize(absent, present);
+    }
+
+    /**
+     * Construct a new taxon comparison object.  This is an alternate method for cases where the client
+     * needs access to the directory controller objects.
+     *
+     * @param taxDirObject	taxonomic list directory controller
+     * @param tagDirObject	tag directory controller
+     * @oaram absent		maximum fraction of a set allowed for an absent tag
+     * @param present		minimum fraction of a set allowed for a present tag
+     *
+     * @throws ParseFailureException
+     * @throws IOException
+     */
+    public TaxonCompare(TaxonListDirectory taxDirObject, TagDirectory tagDirObject, double absent, double present) throws IOException, ParseFailureException {
+        this.taxDir = taxDirObject;
+        this.tagDir = tagDirObject;
+        this.initialize(absent, present);
+    }
+
+    /**
+     * Initialize this object from the directory controllers.
+     *
+     * @oaram absent		maximum fraction of a set allowed for an absent tag
+     * @param present		minimum fraction of a set allowed for a present tag
+     *
+     * @throws IOException
+     * @throws ParseFailureException
+     */
+    public void initialize(double absent, double present) throws IOException, ParseFailureException {
+        this.taxTree = this.taxDir.getTaxTree();
         this.compareEngine = new GroupCompareEngine(this.tagDir, absent, present);
     }
 

@@ -12,6 +12,7 @@ import org.theseed.basic.BaseProcessor;
  *  taxonCompare	find tag differences between taxonomic subgroups of a genome source
  *  setCompare		find tag differences between two non-intersecting subsets of a genome source
  *  setProcess		scan a genome source for tags and find tag differences between two non-intersecting subsets
+ *  taxonPipe		build the tag directory and taxonomy lists for a genome source and output differentiating tags
  *
  */
 public class App
@@ -23,6 +24,7 @@ public class App
              "taxonCompare", "find tag differences between taxonomic subgroups of a genome source",
              "setCompare", "find tag differences between two non-intersecting subsets of a genome source",
              "setProcess", "scan a genome source for tags and find tag differences between two non-intersecting subsets",
+             "taxonPipe", "build the tag directory and taxonomy lists for a genome source and output differentiating tags"
     };
 
     public static void main( String[] args )
@@ -47,6 +49,9 @@ public class App
             break;
         case "setProcess" :
             processor = new SetCompareFullProcessor();
+            break;
+        case "taxonPipe" :
+            processor = new TaxonPipeProcessor();
             break;
         case "-h" :
         case "--help" :
