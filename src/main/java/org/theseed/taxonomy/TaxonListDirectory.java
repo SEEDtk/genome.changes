@@ -37,7 +37,7 @@ public class TaxonListDirectory {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TaxonListDirectory.class);
+    private static final Logger log = LoggerFactory.getLogger(TaxonListDirectory.class);
     /** master directory name */
     private File dirName;
     /** array of rank-map files in rank-level order */

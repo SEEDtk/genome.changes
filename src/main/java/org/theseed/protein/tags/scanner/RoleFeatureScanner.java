@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.proteins.Role;
@@ -25,8 +27,10 @@ import org.theseed.proteins.RoleMap;
 public class RoleFeatureScanner extends FeatureScanner {
 
     // FIELDS
+    /** logging facility */
+    private static final Logger log = LoggerFactory.getLogger(RoleFeatureScanner.class);
     /** map of role names to role IDs */
-    private RoleMap roleMap;
+    private final RoleMap roleMap;
 
     /**
      * @param processor
@@ -48,16 +52,11 @@ public class RoleFeatureScanner extends FeatureScanner {
         } else {
             List<Role> roles = feat.getUsefulRoles(this.roleMap);
             // Generally, there is only zero or one, so we optimize those cases.
-            switch (roles.size()) {
-            case 0:
-                retVal = EMPTY_TAG_SET;
-                break;
-            case 1:
-                retVal = Set.of(roles.get(0).getId());
-                break;
-            default :
-                retVal = roles.stream().map(x -> x.getId()).collect(Collectors.toSet());
-            }
+            retVal = switch (roles.size()) {
+                case 0 -> EMPTY_TAG_SET;
+                case 1 -> Set.of(roles.get(0).getId());
+                default -> roles.stream().map(x -> x.getId()).collect(Collectors.toSet());
+            };
         }
         return retVal;
     }

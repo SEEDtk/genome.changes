@@ -32,7 +32,7 @@ public class TagDirectory {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TagDirectory.class);
+    private static final Logger log = LoggerFactory.getLogger(TagDirectory.class);
     /** directory name */
     private File dirName;
     /** map of genome IDs to file names */

@@ -39,7 +39,7 @@ public class BuildTaxonomyListProcessor extends BaseGenomeProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(BuildTaxonomyListProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(BuildTaxonomyListProcessor.class);
     /** taxon list directory controller */
     private TaxonListDirectory taxDir;
 

@@ -53,7 +53,7 @@ public class SetCompareFullProcessor extends BaseGenomeProcessor implements Feat
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(SetCompareFullProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(SetCompareFullProcessor.class);
     /** tag directory controller */
     private TagDirectory tagDir;
     /** comparison engine */

@@ -35,7 +35,7 @@ public class TaxonCompare {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TaxonCompare.class);
+    private static final Logger log = LoggerFactory.getLogger(TaxonCompare.class);
     /** taxonomic list directory */
     private TaxonListDirectory taxDir;
     /** taxonomic tree for the list directory */

@@ -29,7 +29,7 @@ public class TaxTree {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TaxTree.class);
+    private static final Logger log = LoggerFactory.getLogger(TaxTree.class);
     /** map of taxonomic grouping IDs to parent information */
     private Map<Integer, Node> linkMap;
     /** map file name */

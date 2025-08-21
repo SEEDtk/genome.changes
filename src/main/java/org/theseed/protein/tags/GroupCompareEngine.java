@@ -35,7 +35,7 @@ public class GroupCompareEngine {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(GroupCompareEngine.class);
+    private static final Logger log = LoggerFactory.getLogger(GroupCompareEngine.class);
     /** tag directory object */
     final private TagDirectory tagDir;
     /** maxmimum fraction of a set to qualify as absent */

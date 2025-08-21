@@ -62,7 +62,7 @@ public class TaxonPipeProcessor extends BaseGenomeProcessor implements FeatureSc
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TaxonPipeProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(TaxonPipeProcessor.class);
     /** taxonomy tree controller */
     private TaxTree taxonTree;
     /** tag directory controller */

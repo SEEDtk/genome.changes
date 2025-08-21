@@ -43,7 +43,7 @@ public class BuildTagDirectoryProcessor extends BaseGenomeProcessor implements I
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(BuildTagDirectoryProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(BuildTagDirectoryProcessor.class);
     /** tag directory to create */
     private TagDirectory tagController;
     /** feature scanner to use */

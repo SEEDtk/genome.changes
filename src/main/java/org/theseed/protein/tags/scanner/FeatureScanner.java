@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
@@ -25,8 +23,6 @@ import org.theseed.genome.Genome;
 public abstract class FeatureScanner {
 
     // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(FeatureScanner.class);
     /** empty set for subclasses to return */
     protected static final Set<String> EMPTY_TAG_SET = Collections.emptySet();
 
@@ -92,7 +88,7 @@ public abstract class FeatureScanner {
      * @return a set of the tags found
      */
     public final Set<String> getTags(Genome genome) {
-        Set<String> retVal = new HashSet<String>();
+        Set<String> retVal = new HashSet<>();
         for (Feature feat : genome.getFeatures()) {
             Set<String> tags = this.getFeatureTags(feat);
             retVal.addAll(tags);
