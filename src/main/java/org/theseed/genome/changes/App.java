@@ -35,30 +35,14 @@ public class App
         BaseProcessor processor;
         // Determine the command to process.
         switch (command) {
-        case "buildTax" :
-            processor = new BuildTaxonomyListProcessor();
-            break;
-        case "buildTags" :
-            processor = new BuildTagDirectoryProcessor();
-            break;
-        case "taxonCompare" :
-            processor = new TaxonAnalysisProcessor();
-            break;
-        case "setCompare" :
-            processor = new SetCompareProcessor();
-            break;
-        case "setProcess" :
-            processor = new SetCompareFullProcessor();
-            break;
-        case "taxonPipe" :
-            processor = new TaxonPipeProcessor();
-            break;
-        case "-h" :
-        case "--help" :
-            processor = null;
-            break;
-        default :
-            throw new RuntimeException("Invalid command " + command + ".");
+        case "buildTax" -> processor = new BuildTaxonomyListProcessor();
+        case "buildTags" -> processor = new BuildTagDirectoryProcessor();
+        case "taxonCompare" -> processor = new TaxonAnalysisProcessor();
+        case "setCompare" -> processor = new SetCompareProcessor();
+        case "setProcess" -> processor = new SetCompareFullProcessor();
+        case "taxonPipe" -> processor = new TaxonPipeProcessor();
+        case "-h", "--help" -> processor = null;
+        default -> throw new RuntimeException("Invalid command " + command + ".");
         }
         if (processor == null)
             BaseProcessor.showCommands(COMMANDS);
