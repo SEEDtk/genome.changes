@@ -103,8 +103,8 @@ public class GroupCompareEngine {
      */
     private SetPair<String> analyzeTagCounts(TagCounts counts, int size) {
         // Now we want to separate out the presence and absence sets.
-        Set<String> present = new HashSet<String>();
-        Set<String> semi = new HashSet<String>();
+        Set<String> present = new HashSet<>();
+        Set<String> semi = new HashSet<>();
         // Compute the presence and absence thresholds for the set.
         int setPresent = (int) Math.ceil(size * this.minPresent);
         int setAbsent = (int) Math.floor(size * this.maxAbsent);
@@ -116,7 +116,7 @@ public class GroupCompareEngine {
                 semi.add(counter.getKey());
         }
         // Return the two sets.
-        return new SetPair<String>(present, semi);
+        return new SetPair<>(present, semi);
     }
 
     /**
@@ -155,7 +155,7 @@ public class GroupCompareEngine {
         // The distinguishing tags on the right are present on the right but absent on the left.
         Set<String> right = this.computeDistinguishing(rightTags, leftTags);
         // Return the pair of sets.
-        return new SetPair<String>(left, right);
+        return new SetPair<>(left, right);
     }
 
     /**
@@ -186,7 +186,7 @@ public class GroupCompareEngine {
      * @return the set of distinguishing tags for the first set
      */
     public Set<String> computeDistinguishing(SetPair<String> set1Tags, SetPair<String> set2Tags) {
-        Set<String> retVal = new HashSet<String>(set1Tags.getSet1());
+        Set<String> retVal = new HashSet<>(set1Tags.getSet1());
         retVal.removeAll(set2Tags.getSet1());
         retVal.removeAll(set2Tags.getSet2());
         return retVal;
@@ -205,8 +205,8 @@ public class GroupCompareEngine {
         log.info("Performing comparison.");
         SetPair<String> diffTags = this.distinguish(genomeSet1, genomeSet2);
         // Get the result sets and sort them.
-        List<String> diff1 = new ArrayList<String>(diffTags.getSet1());
-        List<String> diff2 = new ArrayList<String>(diffTags.getSet2());
+        List<String> diff1 = new ArrayList<>(diffTags.getSet1());
+        List<String> diff2 = new ArrayList<>(diffTags.getSet2());
         Collections.sort(diff1);
         Collections.sort(diff2);
         log.info("{} tags found for set 1, {} tags for set 2.", diff1.size(), diff2.size());

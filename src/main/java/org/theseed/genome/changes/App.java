@@ -13,6 +13,7 @@ import org.theseed.basic.BaseProcessor;
  *  setCompare		find tag differences between two non-intersecting subsets of a genome source
  *  setProcess		scan a genome source for tags and find tag differences between two non-intersecting subsets
  *  taxonPipe		build the tag directory and taxonomy lists for a genome source and output differentiating tags
+ *  massCompare     find tag differences across multiple genome sets sharing a single tag directory
  *
  */
 public class App
@@ -24,7 +25,8 @@ public class App
              "taxonCompare", "find tag differences between taxonomic subgroups of a genome source",
              "setCompare", "find tag differences between two non-intersecting subsets of a genome source",
              "setProcess", "scan a genome source for tags and find tag differences between two non-intersecting subsets",
-             "taxonPipe", "build the tag directory and taxonomy lists for a genome source and output differentiating tags"
+             "taxonPipe", "build the tag directory and taxonomy lists for a genome source and output differentiating tags",
+             "massCompare", "find tag differences across multiple genome sets sharing a single tag directory"
     };
 
     public static void main( String[] args )
@@ -41,6 +43,7 @@ public class App
         case "setCompare" -> processor = new SetCompareProcessor();
         case "setProcess" -> processor = new SetCompareFullProcessor();
         case "taxonPipe" -> processor = new TaxonPipeProcessor();
+        case "massCompare" -> processor = new MassCompareProcessor();
         case "-h", "--help" -> processor = null;
         default -> throw new RuntimeException("Invalid command " + command + ".");
         }
